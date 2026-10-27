@@ -266,7 +266,13 @@ If you use Gigatoken in your research, please cite it as:
 * Python iteration is handled in Rust, but uses ABI3, which is slower than using internal version-specific CPython APIs. In the future I intend to specialize for each Python version to cut this overhead. Early experiments show a 2x speed improvement for overhead-bound cases.
 * File sinks are not yet implemented in the Gigatoken API.
 * WordPiece is not yet supported.
-* SentencePiece-based tokenization is not nearly as optimized as the more common BPE tokenizers. This is low priority for now since mostly Google models/BERT style models use SentencePiece.
+* Tokenizers with large added vocabularies — common in configs trained with
+  SentencePiece, which often add runs of spaces and newlines — are not yet as
+  optimized as the more common BPE configs. Added tokens must be matched before
+  pretokenization, and their boundaries do not always line up with the
+  pretokenizer, so the fast path uses a SIMD state machine. This is a property
+  of those configs, not of SentencePiece itself, which can train BPE or Unigram
+  models. Lower priority than the common BPE configs for now.
 * Windows has not been tested much, so for now prefer using WSL.
 * CJK-heavy data is much slower to tokenize. Most pretokenizers make caching a challenge in this setting. There is an ongoing effort to improve this.
 
