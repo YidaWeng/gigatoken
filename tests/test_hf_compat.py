@@ -272,6 +272,23 @@ def test_hf_compat_conversions_match(pair, request):
     assert ours.convert_tokens_to_ids(["not-a-real-token"]) == ref.convert_tokens_to_ids(["not-a-real-token"])
 
 
+@pytest.mark.parametrize("pair", ["gpt2", "tinyllama"])
+def test_hf_compat_tokenizers_style_lookups(pair, request):
+    """token_to_id/id_to_token mirror tokenizers.Tokenizer, including no unk fallback."""
+    raw = request.getfixturevalue(f"{pair}_hf")
+    ours = request.getfixturevalue(f"{pair}_compat")
+
+    encoded = raw.encode(TEXTS[0])
+    added = raw.get_added_tokens_decoder()
+    tokens = encoded.tokens + [token.content for token in added.values()] + ["definitely-not-a-token"]
+    for token in tokens:
+        assert ours.token_to_id(token) == raw.token_to_id(token)
+
+    ids = encoded.ids + list(added) + [10**9]
+    for token_id in ids:
+        assert ours.id_to_token(token_id) == raw.id_to_token(token_id)
+
+
 def test_hf_compat_convert_tokens_to_string_byte_fallback(tinyllama_ref, tinyllama_compat):
     tokens = ["▁", "<0xF0>", "<0x9F>", "<0x9A>", "<0x80>"]  # ▁ + utf-8 bytes of 🚀
     assert tinyllama_compat.convert_tokens_to_string(tokens) == tinyllama_ref.convert_tokens_to_string(tokens) == "🚀"

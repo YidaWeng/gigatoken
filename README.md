@@ -22,7 +22,7 @@ pip install gigatoken
 ```
 
 ## Usage
-Gigatoken can be used with its own API, or in compatibility mode with HuggingFace Tokenizers or Tiktoken.
+Gigatoken can be used with its own API, or in compatibility mode with HuggingFace `transformers` tokenizers or Tiktoken.
 
 ### Compatibility Mode (Easiest)
 ```python
@@ -45,6 +45,10 @@ tokens = tokenizer.encode_batch(["This is a test string", "And here is another"]
 
 A substantial amount of effort has been put into making sure the outputs match exactly with what you would get with HuggingFace Tokenizers in this setting, but this is at a non-negligible cost to performance.
 You can still expect way faster performance across the board, but not quite the 1000x you will get with the Gigatoken API.
+
+`as_hf()` implements the `transformers` fast-tokenizer API. Wrapping a raw
+`tokenizers.Tokenizer` works too, and `token_to_id`/`id_to_token` keep their
+lower-level names there; the rest of the surface follows `transformers`.
 
 ### Gigatoken API (Fastest)
 ```python

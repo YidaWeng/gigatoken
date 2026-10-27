@@ -85,7 +85,8 @@ class HFCompat:
     """Adapt a `gigatoken.Tokenizer` to the `transformers` fast-tokenizer API
     (TokenizersBackend / PreTrainedTokenizerFast), so it can replace the
     original tokenizer in existing code:
-    `__call__`/`encode`/`decode`/`batch_decode`/`tokenize`/`convert_*`
+    `__call__`/`encode`/`decode`/`batch_decode`/`tokenize`/`convert_*`,
+    the `tokenizers.Tokenizer`-style `token_to_id`/`id_to_token` lookups,
     plus the vocab and special-token accessors.
 
     Obtain one with `gigatoken.Tokenizer(source).as_hf()`, where `source` is
@@ -519,6 +520,18 @@ class HFCompat:
         if isinstance(tokens, str):
             return self._token_to_id(tokens)
         return [self._token_to_id(t) for t in tokens]
+
+    def token_to_id(self, token: str) -> int | None:
+        """Token string -> id, matching `tokenizers.Tokenizer.token_to_id`.
+
+        Unlike `convert_tokens_to_ids`, an unknown token returns None instead
+        of falling back to the unknown token.
+        """
+        return self._token_to_id_no_unk(token)
+
+    def id_to_token(self, token_id: int) -> str | None:
+        """Id -> token string, matching `tokenizers.Tokenizer.id_to_token`."""
+        return self._id_to_token.get(token_id)
 
     def _token_to_id(self, token: str) -> int | None:
         id_ = self._token_to_id_no_unk(token)
