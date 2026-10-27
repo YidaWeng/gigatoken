@@ -181,6 +181,21 @@ def test_published_encoding_matches_tiktoken(encoding):
     assert tok.encode(special.encode("utf-8")).tolist() == ref.encode(special, allowed_special="all")
 
 
+def test_o200k_special_token_ids():
+    """o200k_base reserves ids beyond its 199,998 mergeable ranks (#31)."""
+    ref = tiktoken.get_encoding("o200k_base")
+    tok = gigatoken.Tokenizer.from_tiktoken(tiktoken_vocab_path("o200k_base"))
+
+    for content, token_id in {
+        "<|endoftext|>": 199999,
+        "<|endofprompt|>": 200018,
+    }.items():
+        assert tok.encode(content.encode("utf-8")).tolist() == [token_id]
+
+        text = f"Hello.{content}Next."
+        assert tok.encode(text.encode("utf-8")).tolist() == ref.encode(text, allowed_special="all")
+
+
 def test_unnamed_vocab_needs_an_explicit_pretokenizer(tmp_path, r50k_tiktoken_path):
     """A rank file whose name is not a published encoding cannot be resolved,
     and says so instead of falling back to some default scheme."""
